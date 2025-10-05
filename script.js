@@ -24,7 +24,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // Create a remove button for the task
         const removeBtn = document.createElement('button');
         removeBtn.textContent = 'Remove';
-        removeBtn.className = 'remove-btn';
+        // ✅ Use classList.add instead of className assignment
+        removeBtn.classList.add('remove-btn');
 
         // Assign an onclick event to remove the li from the taskList when clicked
         removeBtn.onclick = function () {
@@ -49,9 +50,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // (Optional) If you need addTask invoked on load for pre-filled input,
-    // uncomment the line below. By spec this was requested but auto-calling
-    // it with an empty input would trigger an alert, so leave commented
-    // unless you intentionally want to run addTask() on load.
-    // if (taskInput.value.trim() !== '') addTask();
+    // Invoke addTask on DOMContentLoaded if necessary
+    // (Usually kept empty to avoid triggering alert)
 });
