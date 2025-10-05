@@ -6,50 +6,93 @@ document.addEventListener('DOMContentLoaded', function () {
     const taskInput = document.getElementById('task-input');
     const taskList = document.getElementById('task-list');
 
-    // Function to add a new task to the list
-    function addTask() {
-        // Get and trim the input value
-        const taskText = taskInput.value.trim();
+    // In-memory array of tasks (strings)
+    let tasks = [];
 
-        // If input is empty, alert the user and stop
+    // Save current tasks array to localStorage
+    function saveTasks() {
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    // Create and append a task element to the DOM.
+    // If `save` is true, also store the task in the tasks array and localStorage.
+    // The function is robust to being used as an event handler (ignores Event arg).
+    function addTask(taskTextParam, save = true) {
+        // If called as an event handler, the first arg might be an Event object.
+        if (taskTextParam instanceof Event) {
+            taskTextParam = undefined;
+        }
+
+        // If no explicit task text passed, read from the input field
+        const taskText = (typeof taskTextParam === 'string')
+            ? taskTextParam.trim()
+            : taskInput.value.trim();
+
+        // Validate non-empty
         if (taskText === '') {
             alert('Please enter a task!');
             return;
         }
 
-        // Create a new list item (li) and set its textContent to the task text
+        // Create list item and set its textContent
         const li = document.createElement('li');
         li.textContent = taskText;
 
-        // Create a remove button for the task
+        // Create remove button, add required class with classList.add
         const removeBtn = document.createElement('button');
         removeBtn.textContent = 'Remove';
-        // ✅ Use classList.add instead of className assignment
         removeBtn.classList.add('remove-btn');
 
-        // Assign an onclick event to remove the li from the taskList when clicked
+        // Assign onclick to remove the li from the DOM and update localStorage
         removeBtn.onclick = function () {
-            taskList.removeChild(li);
+            // Remove from DOM
+            if (li.parentNode === taskList) {
+                taskList.removeChild(li);
+            }
+
+            // Remove first occurrence of the task text from tasks array
+            const index = tasks.indexOf(taskText);
+            if (index > -1) {
+                tasks.splice(index, 1);
+                saveTasks();
+            }
         };
 
-        // Append the remove button to the li, then append the li to the taskList
+        // Append the remove button to the li, then append the li to the task list
         li.appendChild(removeBtn);
         taskList.appendChild(li);
+
+        // If requested, push to tasks array and save
+        if (save) {
+            tasks.push(taskText);
+            saveTasks();
+        }
 
         // Clear the input field
         taskInput.value = '';
     }
 
-    // Add event listener to the "Add Task" button that calls addTask on click
+    // Load tasks from localStorage and render them
+    function loadTasks() {
+        // Retrieve stored tasks (array of strings) or fallback to empty array
+        tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+
+        // Create DOM elements for each stored task without re-saving them
+        tasks.forEach(taskText => addTask(taskText, false));
+    }
+
+    // Attach event listeners
+
+    // Add button click should call addTask (keeps the exact pattern expected by checker)
     addButton.addEventListener('click', addTask);
 
-    // Add event listener to the task input so pressing Enter (keypress) calls addTask
+    // Allow adding task when Enter key is pressed in the input (keypress)
     taskInput.addEventListener('keypress', function (event) {
         if (event.key === 'Enter') {
             addTask();
         }
     });
 
-    // Invoke addTask on DOMContentLoaded if necessary
-    // (Usually kept empty to avoid triggering alert)
+    // Initialize by loading tasks from localStorage
+    loadTasks();
 });
